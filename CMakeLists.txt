@@ -23,20 +23,20 @@ endif()
 set(CORE_SOURCES
   orchard/core/tensor/Tensor.cpp
   orchard/core/tensor/TensorImpl.cpp
-  orchard/core/tensor/Storage.cpp
 )
 add_library(orchard_core STATIC ${CORE_SOURCES})
-target_include_directories(orchard_core PUBLIC .)
+target_include_directories(orchard_core PUBLIC orchard)
 
-set(RUNTIME_SOURCES
+set(METAL_SOURCES
+  orchard/core/tensor/Storage.cpp
   orchard/runtime/Allocator.cpp
   orchard/runtime/CpuContext.cpp
 )
 if(APPLE)
-  list(APPEND RUNTIME_SOURCES orchard/runtime/MetalContext.mm)
+  list(APPEND METAL_SOURCES orchard/runtime/MetalContext.mm)
 endif()
-add_library(orchard_metal STATIC ${RUNTIME_SOURCES})
-target_include_directories(orchard_metal PUBLIC .)
+add_library(orchard_metal STATIC ${METAL_SOURCES})
+target_include_directories(orchard_metal PUBLIC orchard)
 if(APPLE)
   target_link_libraries(orchard_metal PUBLIC orchard_core Metal::Metal Metal::MetalKit Metal::Foundation)
   target_compile_options(orchard_metal PRIVATE -fno-objc-arc)
@@ -44,8 +44,16 @@ else()
   target_link_libraries(orchard_metal PUBLIC orchard_core)
 endif()
 
-enable_testing()
-find_package(GTest REQUIRED)
-add_executable(tensor_test tests/TensorTest.cpp)
-target_link_libraries(tensor_test PRIVATE orchard_metal GTest::gtest_main)
-add_test(NAME tensor_test COMMAND tensor_test)
+include(CTest)
+if(BUILD_TESTING)
+  include(FetchContent)
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+  )
+  FetchContent_MakeAvailable(googletest)
+  add_executable(tensor_tests tests/tensor_test.cpp)
+  target_include_directories(tensor_tests PRIVATE orchard)
+  target_link_libraries(tensor_tests PRIVATE orchard_core orchard_metal GTest::gtest_main)
+  add_test(NAME tensor_tests COMMAND tensor_tests)
+endif()
