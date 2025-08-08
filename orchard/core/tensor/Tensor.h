@@ -8,8 +8,8 @@ namespace orchard::core::tensor {
 class Tensor {
  public:
   Tensor();
-  Tensor(const Tensor&) = delete;
-  Tensor& operator=(const Tensor&) = delete;
+  Tensor(const Tensor& other);
+  Tensor& operator=(const Tensor& other);
   Tensor(Tensor&& other) noexcept;
   Tensor& operator=(Tensor&& other) noexcept;
   ~Tensor();
