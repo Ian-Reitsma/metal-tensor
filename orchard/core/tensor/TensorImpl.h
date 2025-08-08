@@ -4,6 +4,7 @@
 #include <array>
 #include <atomic>
 #include <string>
+#include <span>
 #ifdef __APPLE__
 #include <os/lock.h>
 #else

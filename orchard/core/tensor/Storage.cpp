@@ -1,19 +1,18 @@
 #include "Storage.h"
+#include <new>
 
 namespace orchard::core::tensor {
 
 Storage::Storage(DeviceType dev, size_t b) : device(dev), bytes(b) {
 #ifdef __APPLE__
-  if (device == DeviceType::MPS) {
-    id<MTLDevice> d = MTLCreateSystemDefaultDevice();
-    buffer = [d newBufferWithLength:b options:MTLResourceStorageModeShared];
-    data = [buffer contents];
-    return;
-  }
-#endif
+  id<MTLDevice> d = MTLCreateSystemDefaultDevice();
+  buffer = [d newBufferWithLength:b options:MTLResourceStorageModeShared];
+  data = [buffer contents];
+#else
   if (posix_memalign(&data, 64, b) != 0) {
     throw std::bad_alloc();
   }
+#endif
 }
 
 Storage::~Storage() {
@@ -22,10 +21,11 @@ Storage::~Storage() {
     [buffer release];
     buffer = nil;
   }
-#endif
-  if (data && device == DeviceType::CPU) {
+#else
+  if (data) {
     std::free(data);
   }
+#endif
   data = nullptr;
   bytes = 0;
 }

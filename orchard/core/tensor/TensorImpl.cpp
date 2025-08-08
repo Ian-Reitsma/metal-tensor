@@ -31,7 +31,7 @@ std::string TensorImpl::toString() const {
     if (i) oss << ",";
     oss << shape[i];
   }
-  oss << "], dtype=" << toString(dtype)
+  oss << "], dtype=" << orchard::core::tensor::toString(dtype)
       << ", device=" << (device == DeviceType::MPS ? "mps" : "cpu") << ")";
   return oss.str();
 }

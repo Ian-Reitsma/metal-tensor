@@ -43,7 +43,8 @@ Tensor Tensor::empty(std::span<const int64_t> shape, DType dtype, DeviceType dev
   size_t bytes = elems * elementSize(dtype);
   Storage storage(dev, bytes);
   auto impl = new TensorImpl(std::move(storage), dtype, dev, shape);
-  return Tensor{impl};
+  return Tensor(impl);
+}
 
 Tensor Tensor::zerosLike(const Tensor& t) {
   Tensor out = Tensor::empty(t.shape(), t.dtype(), t.device());
@@ -55,7 +56,6 @@ Tensor Tensor::fromData(void* src, std::span<const int64_t> shape, DType dtype, 
   Tensor t = Tensor::empty(shape, dtype, dev);
   std::memcpy(t.impl_->storage.data, src, t.impl_->storage.bytes);
   return t;
-
 }
 
 Tensor Tensor::clone() const {
@@ -66,10 +66,14 @@ Tensor Tensor::clone() const {
 
 void Tensor::to(DeviceType newDev) {
   if (!impl_ || impl_->device == newDev) return;
+#ifdef __APPLE__
+  impl_->device = newDev;
+#else
   Storage newStorage(newDev, impl_->storage.bytes);
   std::memcpy(newStorage.data, impl_->storage.data, impl_->storage.bytes);
   impl_->storage = std::move(newStorage);
   impl_->device = newDev;
+#endif
 }
 
 Tensor Tensor::view(std::span<const int64_t> newShape) const {
