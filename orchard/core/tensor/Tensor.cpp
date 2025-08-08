@@ -44,6 +44,18 @@ Tensor Tensor::empty(std::span<const int64_t> shape, DType dtype, DeviceType dev
   Storage storage(dev, bytes);
   auto impl = new TensorImpl(std::move(storage), dtype, dev, shape);
   return Tensor{impl};
+
+Tensor Tensor::zerosLike(const Tensor& t) {
+  Tensor out = Tensor::empty(t.shape(), t.dtype(), t.device());
+  std::memset(out.impl_->storage.data, 0, out.impl_->storage.bytes);
+  return out;
+}
+
+Tensor Tensor::fromData(void* src, std::span<const int64_t> shape, DType dtype, DeviceType dev) {
+  Tensor t = Tensor::empty(shape, dtype, dev);
+  std::memcpy(t.impl_->storage.data, src, t.impl_->storage.bytes);
+  return t;
+
 }
 
 Tensor Tensor::clone() const {

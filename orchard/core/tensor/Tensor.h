@@ -15,6 +15,8 @@ class Tensor {
   ~Tensor();
 
   static Tensor empty(std::span<const int64_t> shape, DType dtype, DeviceType dev = DeviceType::MPS);
+  static Tensor zerosLike(const Tensor& t);
+  static Tensor fromData(void* src, std::span<const int64_t> shape, DType dtype, DeviceType dev);
   Tensor clone() const;
   void to(DeviceType newDev);
   Tensor view(std::span<const int64_t> newShape) const;
