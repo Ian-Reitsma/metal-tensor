@@ -19,16 +19,17 @@ class Tensor {
   [[nodiscard]] static Tensor fromData(void* src, std::span<const int64_t> shape, DType dtype, DeviceType dev);
   [[nodiscard]] Tensor clone() const;
   void to(DeviceType newDev);
-  [[nodiscard]] Tensor view(std::span<const int64_t> newShape) const;
-  [[nodiscard]] Tensor slice(int dim, int start, int end, int step=1) const;
-  [[nodiscard]] Tensor contiguous() const;
+  Tensor view(std::span<const int64_t> newShape) const;
+  Tensor slice(int dim, int start, int end, int step=1) const;
+  [[nodiscard]] bool is_contiguous() const { return impl_ && impl_->isContiguous(); }
+  Tensor contiguous() const;
 
-  DType dtype() const { return impl_->dtype; }
-  DeviceType device() const { return impl_->device; }
-  std::span<const int64_t> shape() const { return std::span<const int64_t>(impl_->shape.data(), impl_->ndim); }
-  size_t nbytes() const { return impl_->storage.bytes; }
-  void* data() const { return impl_->storage.data; }
-  std::string toString() const;
+  [[nodiscard]] DType dtype() const { return impl_->dtype; }
+  [[nodiscard]] DeviceType device() const { return impl_->device; }
+  [[nodiscard]] std::span<const int64_t> shape() const { return std::span<const int64_t>(impl_->shape.data(), static_cast<size_t>(impl_->ndim)); }
+  [[nodiscard]] void* data() const { return impl_->storage.data; }
+  [[nodiscard]] size_t nbytes() const { return impl_->storage.bytes; }
+  [[nodiscard]] std::string toString() const;
 
  private:
   explicit Tensor(TensorImpl* impl) : impl_(impl) {}

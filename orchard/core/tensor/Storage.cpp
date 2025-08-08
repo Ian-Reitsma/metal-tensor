@@ -6,8 +6,10 @@ namespace orchard::core::tensor {
 Storage::Storage(DeviceType dev, size_t b) : device(dev), bytes(b) {
 #ifdef __APPLE__
   id<MTLDevice> d = MTLCreateSystemDefaultDevice();
-  buffer = [d newBufferWithLength:b options:MTLResourceStorageModeShared];
+  MTLResourceOptions opts = MTLResourceStorageModeShared;
+  buffer = [d newBufferWithLength:b options:opts];
   data = [buffer contents];
+  // TODO: handle >16MiB via IOSurface
 #else
   if (posix_memalign(&data, 64, b) != 0) {
     throw std::bad_alloc();
@@ -21,12 +23,13 @@ Storage::~Storage() {
     [buffer release];
     buffer = nil;
   }
+  data = nullptr;
 #else
   if (data) {
     std::free(data);
   }
-#endif
   data = nullptr;
+#endif
   bytes = 0;
 }
 
